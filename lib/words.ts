@@ -171,10 +171,28 @@ const TARGETS = ["море","лес","солнце","дом","город","кн�
 
 const normalize = (value: string) => value.toLocaleLowerCase("ru").replace(/ё/g, "е").replace(/[^а-я-]/g, "").trim();
 
+export function isKnownWord(rawWord: string) {
+  const word = normalize(rawWord);
+  return WORDS.some((item) => normalize(item.word) === word);
+}
+
 function bigrams(word: string) {
   const result = new Set<string>();
   for (let i = 0; i < word.length - 1; i++) result.add(word.slice(i, i + 2));
   return result;
+}
+
+function editSimilarity(a: string, b: string) {
+  const row = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i++) {
+    let diagonal = row[0]; row[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const above = row[j];
+      row[j] = a[i - 1] === b[j - 1] ? diagonal : Math.min(row[j] + 1, row[j - 1] + 1, diagonal + 1);
+      diagonal = above;
+    }
+  }
+  return 1 - row[b.length] / Math.max(a.length, b.length, 1);
 }
 
 export function pickTarget(seed: number) {
@@ -194,6 +212,10 @@ export function scoreGuess(rawGuess: string, rawTarget: string) {
   const a = bigrams(guess); const b = bigrams(target);
   const overlap = [...a].filter((part) => b.has(part)).length;
   const spellingScore = Math.round((overlap / Math.max(1, new Set([...a, ...b]).size)) * 38);
-  const score = Math.min(94, Math.max(2, tagScore + spellingScore + ((guessProfile && sharedTags) ? 6 : 0)));
-  return { word: guess, score, rank: Math.max(2, Math.round((100 - score) * 10) + 1) };
+  const editScore = Math.round(editSimilarity(guess, target) * 32);
+  let hash = 0;
+  for (const char of guess) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  const tieBreak = hash % 4;
+  const score = Math.min(94, Math.max(2, tagScore + spellingScore + editScore + ((guessProfile && sharedTags) ? 6 : 0)));
+  return { word: guess, score, rank: Math.max(2, Math.round((100 - score) * 10) + 1 + tieBreak) };
 }

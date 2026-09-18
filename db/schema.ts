@@ -6,6 +6,7 @@ export const rooms = sqliteTable("rooms", {
   name: text("name").notNull(),
   target: text("target").notNull(),
   solved: integer("solved").notNull().default(0),
+  closed: integer("closed").notNull().default(0),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 

@@ -1,5 +1,5 @@
 import { ensureGameSchema, readRoom } from "../../../../../db/game";
-import { scoreGuess } from "../../../../../lib/words";
+import { isKnownWord, scoreGuess } from "../../../../../lib/words";
 
 export async function POST(request: Request, context: { params: Promise<{ code: string }> }) {
   const { code: rawCode } = await context.params;
@@ -9,11 +9,13 @@ export async function POST(request: Request, context: { params: Promise<{ code: 
   const rawWord = payload.word?.trim().slice(0, 40);
   if (!player || !rawWord) return Response.json({ error: "Введите имя и слово" }, { status: 400 });
   if (!/^[а-яёА-ЯЁ-]+$/.test(rawWord)) return Response.json({ error: "Можно вводить только одно слово" }, { status: 400 });
+  if (!isKnownWord(rawWord)) return Response.json({ error: "Такого слова пока нет в словаре. Попробуйте другое существительное.", unknown: rawWord }, { status: 422 });
 
   const db = await ensureGameSchema();
-  const current = await db.prepare("SELECT target, solved FROM rooms WHERE code = ?").bind(code).first<{ target: string; solved: number }>();
+  const current = await db.prepare("SELECT target, solved, closed FROM rooms WHERE code = ?").bind(code).first<{ target: string; solved: number; closed: number }>();
   if (!current) return Response.json({ error: "Комната не найдена" }, { status: 404 });
   if (current.solved) return Response.json({ room: await readRoom(code) });
+  if (current.closed) return Response.json({ error: "Комната завершена" }, { status: 410 });
 
   const result = scoreGuess(rawWord, current.target);
   if (!result.word) return Response.json({ error: "Введите русское существительное" }, { status: 400 });

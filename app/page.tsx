@@ -16,6 +16,7 @@ type Room = {
   code: string;
   name: string;
   solved: boolean;
+  closed: boolean;
   answer?: string;
   guesses: Guess[];
   players: Player[];
@@ -32,6 +33,7 @@ export default function Home() {
   const [busy, setBusy] = useState(false);
   const [duplicateWord, setDuplicateWord] = useState("");
   const [showRules, setShowRules] = useState(false);
+  const [guessFilter, setGuessFilter] = useState<"all" | "mine">("all");
 
   useEffect(() => {
     const saved = localStorage.getItem(STORE_KEY) || "";
@@ -61,7 +63,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!room) return;
-    const timer = setInterval(() => void loadRoom(room.code, true), 2200);
+    const timer = setInterval(() => void loadRoom(room.code, true), 1400);
     return () => clearInterval(timer);
   }, [loadRoom, room]);
 
@@ -135,6 +137,19 @@ export default function Home() {
     }
   }
 
+  async function roomAction(action: "new_round" | "close") {
+    if (!room || busy) return;
+    if (action === "close" && !window.confirm("Завершить комнату для всех игроков?")) return;
+    setBusy(true);
+    try {
+      const response = await fetch(`/api/rooms/${room.code}/action`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action }) });
+      const data = await response.json() as { room?: Room; error?: string };
+      if (!response.ok || !data.room) throw new Error(data.error || "Не удалось изменить комнату");
+      setRoom(data.room); setGuess(""); setDuplicateWord(""); setStatus(action === "new_round" ? "Новый раунд начался" : "Комната завершена");
+    } catch (error) { setStatus(error instanceof Error ? error.message : "Не удалось изменить комнату"); }
+    finally { setBusy(false); }
+  }
+
   async function shareRoom() {
     if (!room) return;
     const url = `${location.origin}${location.pathname}?room=${room.code}`;
@@ -145,10 +160,12 @@ export default function Home() {
     } catch { /* sharing was cancelled */ }
   }
 
-  const sortedGuesses = useMemo(
-    () => [...(room?.guesses || [])].sort((a, b) => a.rank - b.rank || b.id - a.id),
-    [room?.guesses],
-  );
+  const sortedGuesses = useMemo(() => [...(room?.guesses || [])].sort((a, b) => a.rank - b.rank || b.id - a.id), [room?.guesses]);
+  const visibleGuesses = useMemo(() => guessFilter === "all" ? sortedGuesses : sortedGuesses.filter((item) => item.player === player.trim()), [guessFilter, player, sortedGuesses]);
+  const hotZones = useMemo(() => {
+    const guesses = room?.guesses || [];
+    return { top10: guesses.filter((item) => item.rank <= 10).length, top100: guesses.filter((item) => item.rank <= 100).length, top500: guesses.filter((item) => item.rank <= 500).length };
+  }, [room?.guesses]);
 
   return (
     <main>
@@ -195,10 +212,12 @@ export default function Home() {
         <section className="game">
           <div className="game-head">
             <div><div className="eyebrow">КОМНАТА {room.code}</div><h1>{room.solved ? "Нашли!" : "Ищем слово"}</h1></div>
-            <button className="share" onClick={shareRoom}>Пригласить <span>↗</span></button>
+            <div className="game-actions"><button className="small-action" onClick={() => roomAction("new_round")} disabled={busy || room.closed}>Новый раунд</button><button className="small-action danger" onClick={() => roomAction("close")} disabled={busy || room.closed}>Завершить</button><button className="share" onClick={shareRoom}>Пригласить <span>↗</span></button></div>
           </div>
 
-          {room.solved ? (
+          {room.closed ? (
+            <div className="win-card closed-card"><div className="confetti">—</div><span>КОМНАТА ЗАВЕРШЕНА</span><strong>До встречи</strong><p>Создайте новую комнату, чтобы сыграть ещё раз.</p><button className="primary" onClick={() => { setRoom(null); setRoomCode(""); history.replaceState(null, "", location.pathname); }}>На главную</button></div>
+          ) : room.solved ? (
             <div className="win-card">
               <div className="confetti">✦　●　✦</div>
               <span>СЕКРЕТНОЕ СЛОВО</span>
@@ -216,10 +235,11 @@ export default function Home() {
 
               <div className="game-grid">
                 <div>
-                  <div className="board-head"><span>Лучшие догадки</span><small>{room.guesses.length} попыток</small></div>
-                  {sortedGuesses.length ? (
+                  <div className="board-head"><span>Лучшие догадки</span><div className="filters"><button className={guessFilter === "all" ? "active" : ""} onClick={() => setGuessFilter("all")} type="button">Все</button><button className={guessFilter === "mine" ? "active" : ""} onClick={() => setGuessFilter("mine")} type="button">Мои</button><small>{room.guesses.length} попыток</small></div></div>
+                  <div className="hot-zone"><b>Горячая зона</b><span className={hotZones.top10 ? "lit" : ""}>топ-10 <strong>{hotZones.top10}</strong></span><span className={hotZones.top100 ? "lit" : ""}>топ-100 <strong>{hotZones.top100}</strong></span><span className={hotZones.top500 ? "lit" : ""}>топ-500 <strong>{hotZones.top500}</strong></span></div>
+                  {visibleGuesses.length ? (
                     <div className="guesses">
-                      {sortedGuesses.map((item, index) => (
+                      {visibleGuesses.map((item, index) => (
                         <div className={`guess-row ${item.word === duplicateWord ? "is-duplicate" : ""}`} key={item.id}>
                           <span className="position">{String(index + 1).padStart(2, "0")}</span>
                           <div className="word"><b>{item.word}</b><small>{item.player}</small></div>
