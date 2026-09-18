@@ -31,6 +31,7 @@ export default function Home() {
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [duplicateWord, setDuplicateWord] = useState("");
+  const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem(STORE_KEY) || "";
@@ -153,8 +154,18 @@ export default function Home() {
     <main>
       <header className="topbar">
         <a className="brand" href="/" aria-label="Близко — на главную"><span>БЛИЗ</span><i>К</i><span>О</span><b>●</b></a>
-        <div className="online"><span /> играем вместе</div>
+        <div className="top-actions"><button className="hint-button" onClick={() => setShowRules(true)}>Подсказка</button><div className="online"><span /> играем вместе</div></div>
       </header>
+
+      {showRules && <div className="rules-backdrop" role="presentation" onClick={() => setShowRules(false)}><section className="rules-card" role="dialog" aria-modal="true" aria-labelledby="rules-title" onClick={(event) => event.stopPropagation()}>
+        <button className="rules-close" onClick={() => setShowRules(false)} aria-label="Закрыть подсказку">×</button>
+        <div className="eyebrow">ПОДСКАЗКА</div><h2 id="rules-title">Как играть</h2>
+        <p>У тебя есть неограниченное количество попыток.</p>
+        <p>Все слова в списке ранжированы по их схожести с секретным словом. Чем выше слово в списке — чем меньше его номер — тем оно ближе к секретному слову.</p>
+        <p>Это как игра «горячо-холодно». Например, если секретное слово «кот», то «кошка» будет выше в списке, чем «собака».</p>
+        <p>Введи случайное слово в поле и нажми кнопку со стрелкой. Правила быстро станут понятны. Удачи!</p>
+        <button className="primary" onClick={() => setShowRules(false)}>Понятно <span>→</span></button>
+      </section></div>}
 
       {!room ? (
         <section className="landing">
