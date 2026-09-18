@@ -8,6 +8,7 @@ export async function POST(request: Request, context: { params: Promise<{ code: 
   const player = payload.player?.trim().slice(0, 20);
   const rawWord = payload.word?.trim().slice(0, 40);
   if (!player || !rawWord) return Response.json({ error: "Введите имя и слово" }, { status: 400 });
+  if (!/^[а-яёА-ЯЁ-]+$/.test(rawWord)) return Response.json({ error: "Можно вводить только одно слово" }, { status: 400 });
 
   const db = await ensureGameSchema();
   const current = await db.prepare("SELECT target, solved FROM rooms WHERE code = ?").bind(code).first<{ target: string; solved: number }>();
@@ -17,7 +18,7 @@ export async function POST(request: Request, context: { params: Promise<{ code: 
   const result = scoreGuess(rawWord, current.target);
   if (!result.word) return Response.json({ error: "Введите русское существительное" }, { status: 400 });
   const duplicate = await db.prepare("SELECT id FROM guesses WHERE room_code = ? AND word = ?").bind(code, result.word).first();
-  if (duplicate) return Response.json({ error: "Это слово уже называли" }, { status: 409 });
+  if (duplicate) return Response.json({ room: await readRoom(code), duplicate: result.word }, { status: 200 });
 
   await db.batch([
     db.prepare("INSERT INTO guesses (room_code, player, word, score, rank) VALUES (?, ?, ?, ?, ?)").bind(code, player, result.word, result.score, result.rank),

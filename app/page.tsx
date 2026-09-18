@@ -10,6 +10,7 @@ type Guess = {
   rank: number;
   createdAt: string;
 };
+type Player = { player: string; attempts: number; bestRank: number; points: number };
 
 type Room = {
   code: string;
@@ -17,6 +18,7 @@ type Room = {
   solved: boolean;
   answer?: string;
   guesses: Guess[];
+  players: Player[];
 };
 
 const STORE_KEY = "blizko-player";
@@ -28,6 +30,7 @@ export default function Home() {
   const [guess, setGuess] = useState("");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
+  const [duplicateWord, setDuplicateWord] = useState("");
 
   useEffect(() => {
     const saved = localStorage.getItem(STORE_KEY) || "";
@@ -112,9 +115,17 @@ export default function Home() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ player: name, word: guess.trim() }),
       });
-      const data = (await response.json()) as { room?: Room; error?: string };
+      const data = (await response.json()) as { room?: Room; error?: string; duplicate?: string };
       if (!response.ok || !data.room) throw new Error(data.error || "Не удалось проверить слово");
+      if (data.duplicate) {
+        setRoom(data.room);
+        setDuplicateWord(data.duplicate);
+        setStatus("Это слово уже называли — попробуйте другое");
+        return;
+      }
       setGuess("");
+      setDuplicateWord("");
+      setStatus("");
       setRoom(data.room);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Что-то пошло не так");
@@ -192,21 +203,28 @@ export default function Home() {
               </form>
               {status && <p className="status game-status">{status}</p>}
 
-              <div className="board-head"><span>Лучшие догадки</span><small>{room.guesses.length} попыток</small></div>
-              {sortedGuesses.length ? (
-                <div className="guesses">
-                  {sortedGuesses.map((item, index) => (
-                    <div className="guess-row" key={item.id}>
-                      <span className="position">{String(index + 1).padStart(2, "0")}</span>
-                      <div className="word"><b>{item.word}</b><small>{item.player}</small></div>
-                      <div className="heat"><div style={{ width: `${Math.max(4, item.score)}%` }} /></div>
-                      <strong className={item.rank <= 100 ? "hot" : item.rank <= 500 ? "warm" : "cold"}>{item.rank}</strong>
+              <div className="game-grid">
+                <div>
+                  <div className="board-head"><span>Лучшие догадки</span><small>{room.guesses.length} попыток</small></div>
+                  {sortedGuesses.length ? (
+                    <div className="guesses">
+                      {sortedGuesses.map((item, index) => (
+                        <div className={`guess-row ${item.word === duplicateWord ? "is-duplicate" : ""}`} key={item.id}>
+                          <span className="position">{String(index + 1).padStart(2, "0")}</span>
+                          <div className="word"><b>{item.word}</b><small>{item.player}</small></div>
+                          <div className="heat"><div style={{ width: `${Math.max(4, item.score)}%` }} /></div>
+                          <strong className={item.rank <= 100 ? "hot" : item.rank <= 500 ? "warm" : "cold"}>{item.rank}</strong>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  ) : (
+                    <div className="empty-board"><span>?</span><p>Первое слово за вами.<br />Начните с чего-нибудь общего.</p></div>
+                  )}
                 </div>
-              ) : (
-                <div className="empty-board"><span>?</span><p>Первое слово за вами.<br />Начните с чего-нибудь общего.</p></div>
-              )}
+                <aside className="scoreboard"><div className="board-head"><span>Игроки</span><small>счёт</small></div>
+                  {room.players.length ? room.players.map((item, index) => <div className="player-row" key={item.player}><span>{index + 1}</span><b>{item.player}</b><small>{item.attempts} {item.attempts === 1 ? "попытка" : "попыток"}</small><strong>{item.bestRank}</strong></div>) : <p className="no-players">Здесь появятся игроки и их лучшие места.</p>}
+                </aside>
+              </div>
             </>
           )}
         </section>
