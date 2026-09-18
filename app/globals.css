@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600;700&display=swap');
+
+:root { --ink:#17221b; --cream:#f1f0e7; --paper:#faf9f3; --acid:#d8ff48; --green:#244d36; --orange:#ff6338; --line:#c8ccc2; }
+* { box-sizing:border-box; }
+html { background:var(--cream); color:var(--ink); }
+body { margin:0; font-family:Manrope, sans-serif; min-height:100vh; background:radial-gradient(circle at 82% 2%, rgba(216,255,72,.3), transparent 26%), var(--cream); }
+button,input { font:inherit; }
+button { cursor:pointer; }
+main { min-height:100vh; display:flex; flex-direction:column; }
+.topbar { height:82px; display:flex; align-items:center; justify-content:space-between; padding:0 5vw; border-bottom:1px solid var(--line); }
+.brand { color:var(--ink); text-decoration:none; font:700 20px Unbounded,sans-serif; letter-spacing:-1px; position:relative; }
+.brand i { color:var(--orange); font-style:normal; }.brand b{color:var(--orange);font-size:13px;margin-left:5px;vertical-align:top}
+.online { font:600 12px Unbounded,sans-serif; text-transform:uppercase; letter-spacing:.04em; display:flex; align-items:center; gap:8px; }
+.online span { width:9px; height:9px; background:#4aa661; border-radius:50%; box-shadow:0 0 0 4px rgba(74,166,97,.14); }
+.landing,.game { width:min(1120px,90vw); margin:0 auto; flex:1; }
+.landing { padding:70px 0 40px; display:grid; grid-template-columns:1.1fr .75fr; column-gap:8vw; align-items:center; }
+.eyebrow { font:700 11px Unbounded,sans-serif; letter-spacing:.12em; margin-bottom:20px; }
+h1 { margin:0; font:600 clamp(55px,7vw,102px)/.91 Unbounded,sans-serif; letter-spacing:-.075em; }
+h1 em { color:var(--orange); font-style:normal; position:relative; }
+h1 em:after { content:""; position:absolute; left:4%; right:-5%; bottom:-4px; height:11px; background:var(--acid); z-index:-1; transform:rotate(-2deg); }
+.lede { font-size:18px; line-height:1.6; max-width:550px; margin:35px 0 0; color:#536056; }
+.entry-card { grid-column:2; grid-row:1 / span 2; background:var(--paper); border:1px solid var(--ink); box-shadow:10px 10px 0 var(--green); padding:34px; }
+.entry-card label,.guess-box label { display:block; font:700 11px Unbounded,sans-serif; text-transform:uppercase; margin-bottom:10px; }
+input { width:100%; border:1px solid var(--line); background:white; padding:16px 17px; border-radius:0; outline:none; color:var(--ink); }
+input:focus { border-color:var(--ink); box-shadow:0 0 0 2px var(--acid); }
+.primary { width:100%; margin-top:12px; background:var(--ink); color:white; border:0; padding:17px 19px; font-weight:800; text-align:left; display:flex; justify-content:space-between; }
+.primary:hover { background:var(--green); }.primary:disabled{opacity:.5}
+.divider { display:flex; align-items:center; gap:12px; color:#8a918a; font-size:11px; margin:22px 0; white-space:nowrap; }.divider:before,.divider:after{content:"";height:1px;background:var(--line);flex:1}
+.join { display:flex; }.join input{letter-spacing:.18em;font-weight:800;text-transform:uppercase}.join button{width:60px;border:0;background:var(--acid);font-size:23px}
+.status { font-size:13px; color:#b43d1c; margin:16px 0 0; }
+.how { grid-column:1; display:grid; grid-template-columns:auto 1fr auto 1fr auto 1fr; gap:12px; margin-top:72px; border-top:1px solid var(--line); padding-top:25px; }.how>span{font:600 11px Unbounded;color:var(--orange)}.how p{margin:0}.how b,.how small{display:block}.how b{font-size:13px}.how small{font-size:11px;color:#768077;margin-top:4px}
+.game { padding:55px 0 70px; max-width:900px; }.game-head{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:30px}.game h1{font-size:clamp(42px,6vw,72px)}
+.share { border:1px solid var(--ink); background:transparent; padding:13px 18px; font-weight:800; }.share span{color:var(--orange);margin-left:20px}.share:hover{background:var(--acid)}
+.guess-box { margin:42px 0 22px; }.guess-box>div{display:flex;box-shadow:6px 6px 0 var(--green)}.guess-box input{font-size:20px;padding:20px;border-color:var(--ink)}.guess-box button{background:var(--acid);border:1px solid var(--ink);border-left:0;padding:0 28px;font-weight:800}.guess-box button:disabled{filter:grayscale(1);opacity:.55}
+.game-status{margin-bottom:22px}.board-head{display:flex;justify-content:space-between;margin:35px 0 12px;font:700 11px Unbounded,sans-serif;text-transform:uppercase}.board-head small{font:600 11px Manrope;color:#7b837c}
+.guesses{border-top:1px solid var(--ink)}.guess-row{display:grid;grid-template-columns:46px 1fr minmax(90px,30%) 58px;align-items:center;gap:16px;border-bottom:1px solid var(--line);padding:15px 4px}.position{font:600 10px Unbounded;color:#8b928d}.word b{display:block;font-size:16px;text-transform:capitalize}.word small{color:#879089}.heat{height:7px;background:#dfe1db;overflow:hidden}.heat div{height:100%;background:var(--green)}.guess-row>strong{font:700 13px Unbounded;text-align:right}.guess-row>strong.hot{color:var(--orange)}.guess-row>strong.warm{color:#748514}.guess-row>strong.cold{color:#687a70}
+.empty-board{border:1px dashed #aeb4ac;text-align:center;padding:52px;color:#7b837c}.empty-board span{display:inline-grid;place-items:center;width:50px;height:50px;border:1px solid #aeb4ac;border-radius:50%;font:600 22px Unbounded}.empty-board p{line-height:1.6}
+.win-card{margin:45px auto;background:var(--acid);border:1px solid var(--ink);box-shadow:10px 10px 0 var(--green);padding:55px;text-align:center;max-width:650px}.win-card>span{font:700 11px Unbounded;letter-spacing:.12em}.win-card strong{display:block;font:600 clamp(40px,8vw,76px) Unbounded;text-transform:uppercase;margin:16px 0}.win-card p{font-size:17px}.win-card .primary{max-width:240px;margin:30px auto 0}.confetti{font-size:24px;color:var(--orange);margin-bottom:24px}
+footer { min-height:80px;border-top:1px solid var(--line);padding:0 5vw;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#727b74}footer span{font:600 10px Unbounded}footer p{font-style:italic}
+@media(max-width:760px){.topbar{height:68px}.online{font-size:9px}.landing{display:block;padding-top:45px}.lede{font-size:16px;margin:25px 0 35px}.entry-card{padding:24px;box-shadow:7px 7px 0 var(--green)}.how{grid-template-columns:auto 1fr;margin-top:55px;row-gap:22px}.game{padding-top:35px}.game-head{align-items:center}.game-head .eyebrow{margin-bottom:10px}.share{font-size:0}.share span{font-size:22px;margin:0}.guess-box>div{display:block;box-shadow:5px 5px 0 var(--green)}.guess-box button{width:100%;padding:15px;border-left:1px solid var(--ink);border-top:0}.guess-row{grid-template-columns:34px 1fr 52px}.heat{grid-column:2 / 4;grid-row:2;margin-top:-8px}.win-card{padding:40px 20px}}
